@@ -1,0 +1,16 @@
+{
+	"recommendations": [
+		"editorconfig.editorconfig",
+		"dbaeumer.vscode-eslint",
+		"ms-playwright.playwright",
+		"esbenp.prettier-vscode",
+		"Vue.volar",
+		"Vue.vscode-typescript-vue-plugin",
+		"eamodio.gitlens",
+		"ms-vscode.vscode-typescript-next",
+		"amandeepmittal.pug",
+		"wayou.vscode-todo-highlight",
+		"sdras.vue-vscode-snippets",
+		"streetsidesoftware.code-spell-checker"
+	]
+}
