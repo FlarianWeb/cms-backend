@@ -62,7 +62,7 @@ devDependencies:
     specifier: ^29.5.0
     version: 29.7.0(@types/node@20.11.16)(ts-node@10.9.2)
   prettier:
-    specifier: ^3.0.0
+    specifier: ^3.2.5
     version: 3.2.5
   source-map-support:
     specifier: ^0.5.21
