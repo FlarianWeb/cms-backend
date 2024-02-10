@@ -30,16 +30,10 @@ jobs:
                   REVIEWER=$(cat reviewer.txt)
                   echo "::set-output name=reviewer::$REVIEWER"
 
-            - name: Assign Reviewer
-              uses: octokit/auth-action@v2.x
-              id: auth
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-
             - name: Request Reviewer
               uses: octokit/request-action@v2.x
               with:
                   route: POST /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
                   mediaType: '{"previews":["sailor-v-preview"]}'
-                  token: ${{ steps.auth.outputs.token }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
                   reviewers: ${{ steps.read_reviewer.outputs.reviewer }}
