@@ -1,38 +1,123 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Unit tests
+name: Pull Request Tests
 
 on:
-  pull_request:
-    branches: [ "master" ]
+    pull_request:
+        branches: ['master']
 
 jobs:
-  unit_test:
+    unit_test:
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [16.x, 18.x, 20.x]
 
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x, 20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
 
-    steps:
-    - uses: actions/checkout@v3
+            - name: Create log directory
+              if: always()
+              run: mkdir log
 
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+            - name: Set up Node.js v.${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
 
-    - uses: pnpm/action-setup@v3
-      name: Install pnpm
-      with:
-        version: 8
-        run_install: false
+            - uses: pnpm/action-setup@v3
+              name: Install pnpm
+              with:
+                  version: 8
+                  run_install: false
 
-    - name: Install dependencies
-      run: pnpm install
-      
-    - name: Unit run
-      run: pnpm test
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Run tests
+              run: pnpm test > log/unit.log 2>&1
+
+            - name: Generate report
+              if: always()
+              run: |
+                  echo "Node.js version: ${{ matrix.node-version }}" >> ${{ matrix.node-version }}_report.txt
+                  echo "Test results:" >> ${{ matrix.node-version }}_report.txt
+                  tail -n +7 log/unit.log >> ${{ matrix.node-version }}_report.txt
+                  sed -i 's/\x1B\[[0-9;]*[JKmsu]//g' ${{ matrix.node-version }}_report.txt
+                  echo "" >> ${{ matrix.node-version }}_report.txt
+                  echo "::set-output name=report_path::${{ matrix.node-version }}_report.txt"
+
+            - name: Upload report artifact
+              if: always()
+              uses: actions/upload-artifact@v2
+              with:
+                  name: reports
+                  path: '*.txt'
+
+    send_telegram_notify:
+        if: always()
+        needs: unit_test
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Download report artifact
+              uses: actions/download-artifact@v2
+              with:
+                  name: reports
+
+            - name: Concatenate reports
+              run: |
+                  cat *.txt > report.log
+
+            - name: Debug report.log
+              run: cat report.log
+
+            - name: Prepare message
+              run: |
+                  author="${{ github.actor }}"
+                  repository="${{ github.repository }}"
+                  commitUrl="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+
+                  if [[ "$author" == "MusinRamil" ]]; then
+                    reviewer="barsukov-d"
+                  elif [[ "$author" == "barsukov-d" ]]; then
+                    reviewer="MusinRamil"
+                  else
+                    reviewer="MusinRamil"
+                  fi
+
+                  if [ ${{ needs.unit_test.result }} == 'success' ]; then
+                  message="
+
+                  $repository
+                  ✅ Тесты успешно пройдены
+                  🔓 Запрос на слияние ожидает ревью
+
+                  Автор: $author
+                  Ревьюер: $reviewer
+                  [Перейти к коммиту]($commitUrl)
+                  "
+                  else
+                  message="
+
+                  $repository
+                  ❌ Тесты провалены
+                  🔒 Запрос на слияние заблокирован
+
+                  Автор: $author
+                  Ревьюер: $reviewer
+                  [Перейти к коммиту]($commitUrl)
+                  "
+                  fi
+
+                  echo "$message" > message.txt
+
+            - name: Send telegram notify
+              run: |
+                  curl -s -X POST \
+                  -F "chat_id=${{ secrets.TELEGRAM_NOTIFY_CHAT_ID }}" \
+                  -F "document=@report.log" \
+                  -F "caption=$(cat message.txt)" \
+                  -F "parse_mode=Markdown" \
+                  -F "message_thread_id=${{ secrets.TELEGRAM_NOTIFY_THEME_AUTOTEST }}" \
+                  "https://api.telegram.org/bot${{ secrets.TELEGRAM_NOTIFY_TOKEN }}/sendDocument"
