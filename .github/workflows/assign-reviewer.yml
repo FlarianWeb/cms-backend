@@ -11,7 +11,26 @@ jobs:
     assign_reviewer:
         runs-on: ubuntu-latest
         steps:
-            - uses: hkusu/review-assign-action@v1
+            - name: Check PR author
+              id: check_author
+              run: |
+                  PR_AUTHOR=$(jq -r '.pull_request.user.login' $GITHUB_EVENT_PATH)
+                  if [[ "$PR_AUTHOR" == "MusinRamil" ]]; then
+                    REVIEWER="barsukov-d"
+                  elif [[ "$PR_AUTHOR" == "barsukov-d" ]]; then
+                    REVIEWER="MusinRamil"
+                  else
+                    echo "Skipping review assignment."
+                    exit 0
+                  fi
+
+            - name: Assign Reviewer
+              uses: octokit/request-action@v2.x
               with:
-                  assignees: ${{ github.actor }}
-                  reviewers: MusinRamil, barsukov-d
+                  route: POST /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
+                  headers: |
+                      Authorization: token ${{ secrets.GITHUB_TOKEN }}
+                  body: |
+                      {
+                        "reviewers": ["${{ REVIEWER }}"]
+                      }
