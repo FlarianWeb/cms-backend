@@ -31,12 +31,15 @@ jobs:
                   echo "::set-output name=reviewer::$REVIEWER"
 
             - name: Assign Reviewer
+              uses: octokit/auth-action@v2.x
+              id: auth
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Request Reviewer
               uses: octokit/request-action@v2.x
               with:
                   route: POST /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
-                  headers: |
-                      Authorization: token ${{ secrets.GITHUB_TOKEN }}
-                  body: |
-                      {
-                        "reviewers": ["${{ steps.read_reviewer.outputs.reviewer }}"]
-                      }
+                  mediaType: '{"previews":["sailor-v-preview"]}'
+                  token: ${{ steps.auth.outputs.token }}
+                  reviewers: ${{ steps.read_reviewer.outputs.reviewer }}
