@@ -27,6 +27,6 @@ jobs:
               uses: wow-actions/auto-assign@v3
               with:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  reviewers: ${{ steps.check_author.outputs.reviewers }}
+                  reviewers: barsukov-d
                   assignees: ${{ github.actor }}
                   skipKeywords: draft
