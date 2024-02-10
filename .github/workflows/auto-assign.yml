@@ -8,25 +8,12 @@ jobs:
     run:
         runs-on: ubuntu-latest
         steps:
-            - name: Check PR author
-              id: check_author
-              run: |
-                  PR_AUTHOR=$(jq -r '.pull_request.user.login' $GITHUB_EVENT_PATH)
-
-                  if [[ "$PR_AUTHOR" == "MusinRamil" ]]; then
-                    REVIEWERS="barsukov-d"
-                  elif [[ "$PR_AUTHOR" == "barsukov-d" ]]; then
-                    REVIEWERS="MusinRamil"
-                  else
-                    REVIEWERS="MusinRamil, barsukov-d"
-                  fi
-
-                  echo "::set-output name=reviewers::$REVIEWERS"
-
             - name: Auto Assign
               uses: wow-actions/auto-assign@v3
               with:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  reviewers: barsukov-d
+                  reviewers: |
+                      barsukov-d
+                      MusinRamil
                   assignees: ${{ github.actor }}
                   skipKeywords: draft
