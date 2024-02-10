@@ -23,7 +23,15 @@ async function checkDatabaseConnection(config) {
 async function runCommands() {
 	try {
 		console.log('Starting database...');
-		await exec('docker-compose up -d mysql-dev');
+		try {
+			await exec('docker-compose up -d mysql-dev');
+		} catch (error) {
+			console.error(
+				'Failed to start the database. Please make sure Docker is running and Docker Compose is installed.'
+			);
+			console.error('Error details:', error.message);
+			process.exit(1);
+		}
 		console.log('Database started.');
 
 		console.log('Waiting for database to initialize...');
