@@ -1,0 +1,37 @@
+name: Assign Code Reviewer
+on:
+    pull_request:
+        types:
+            - opened
+
+jobs:
+    assign_reviewer:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check PR author
+              id: check_author
+              run: |
+                  PR_AUTHOR=$(jq -r '.pull_request.user.login' $GITHUB_EVENT_PATH)
+                  if [[ "$PR_AUTHOR" == "MusinRamil" ]]; then
+                    REVIEWER="barsukov-d"
+                  elif [[ "$PR_AUTHOR" == "barsukov-d" ]]; then
+                    REVIEWER="MusinRamil"
+                  else
+                    echo "Skipping review assignment."
+                    exit 0
+                  fi
+
+            - name: Assign Reviewer
+              uses: actions/github-script@v5
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const { owner, repo } = context.repo;
+                      const prNumber = context.payload.pull_request.number;
+                      const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+                      octokit.pulls.createReviewRequest({
+                        owner,
+                        repo,
+                        pull_number: prNumber,
+                        reviewers: [REVIEWER]
+                      });
