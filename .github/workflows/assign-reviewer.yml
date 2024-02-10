@@ -6,34 +6,24 @@ on:
     # pull_request:
     #     types:
     #         - opened
-
 jobs:
-    assign_reviewer:
+    run:
         runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
         steps:
-            - name: Check PR author
-              id: check_author
-              run: |
-                  PR_AUTHOR=$(jq -r '.pull_request.user.login' $GITHUB_EVENT_PATH)
-                  if [[ "$PR_AUTHOR" == "MusinRamil" ]]; then
-                    echo "barsukov-d" > reviewer.txt
-                  elif [[ "$PR_AUTHOR" == "barsukov-d" ]]; then
-                    echo "MusinRamil" > reviewer.txt
-                  else
-                    echo "Skipping review assignment."
-                    exit 0
-                  fi
-
-            - name: Read Reviewer
-              id: read_reviewer
-              run: |
-                  REVIEWER=$(cat reviewer.txt)
-                  echo "::set-output name=reviewer::$REVIEWER"
-
-            - name: Request Reviewer
-              uses: octokit/request-action@v2.x
+            - name: 'Auto-assign issue'
+              uses: pozil/auto-assign-issue@v1
               with:
-                  route: POST /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers
-                  mediaType: '{"previews":["sailor-v-preview"]}'
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  reviewers: ${{ steps.read_reviewer.outputs.reviewer }}
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  reviewers: |
+                      if [[ "${{ github.actor }}" == "MusinRamil" ]]; then
+                        reviewer="barsukov-d"
+                      elif [[ "${{ github.actor }}" == "barsukov-d" ]]; then
+                        reviewer="MusinRamil"
+                      else
+                        reviewer="MusinRamil"
+                      fi
+                  assignees: ${{ github.actor }}
+                  numOfAssignee: 1
