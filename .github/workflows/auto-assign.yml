@@ -1,0 +1,27 @@
+name: Auto Assign
+
+on:
+    pull_request:
+        branches: ['master']
+jobs:
+    run:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: wow-actions/auto-assign@v3
+              with:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+                  reviewers: |
+                      if [[ "${{ github.actor }} == "MusinRamil" ]]; then
+                      echo "barsukov-d"
+
+                      elif  [[ "${{ github.actor }} == "barsukov-d" ]]; then
+                      echo "MusinRamil"
+
+                      else
+                      echo "barsukov-d"
+                      fi
+
+                  assignees: ${{ github.actor }}
+
+                  skipKeywords: draft
