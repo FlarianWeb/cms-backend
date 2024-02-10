@@ -16,13 +16,19 @@ jobs:
               run: |
                   PR_AUTHOR=$(jq -r '.pull_request.user.login' $GITHUB_EVENT_PATH)
                   if [[ "$PR_AUTHOR" == "MusinRamil" ]]; then
-                    echo "barsukov-d" >> $GITHUB_ENV
+                    echo "barsukov-d" > reviewer.txt
                   elif [[ "$PR_AUTHOR" == "barsukov-d" ]]; then
-                    echo "MusinRamil" >> $GITHUB_ENV
+                    echo "MusinRamil" > reviewer.txt
                   else
                     echo "Skipping review assignment."
                     exit 0
                   fi
+
+            - name: Read Reviewer
+              id: read_reviewer
+              run: |
+                  REVIEWER=$(cat reviewer.txt)
+                  echo "::set-output name=reviewer::$REVIEWER"
 
             - name: Assign Reviewer
               uses: octokit/request-action@v2.x
@@ -32,5 +38,5 @@ jobs:
                       Authorization: token ${{ secrets.GITHUB_TOKEN }}
                   body: |
                       {
-                        "reviewers": ["${{ env.REVIEWER }}"]
+                        "reviewers": ["${{ steps.read_reviewer.outputs.reviewer }}"]
                       }
