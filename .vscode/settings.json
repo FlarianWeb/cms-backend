@@ -96,5 +96,6 @@
 	},
 	"files.associations": {
 		"*.env*": "env"
-	}
+	},
+	"cSpell.words": ["Kamil", "Myśliwiec", "nestframework", "nestjs"]
 }
