@@ -65,8 +65,6 @@ const startNestApp = () => {
 const runCommands = async () => {
 	require('dotenv').config();
 	try {
-		console.log('Starting database...');
-		console.log('Starting MySQL database...', process.env.DB_HOST);
 		await startDatabase();
 		console.log('Database started.');
 
