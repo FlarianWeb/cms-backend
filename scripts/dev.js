@@ -14,9 +14,6 @@ const checkEnvFile = () => {
 	if (!fs.existsSync(envPath)) {
 		fs.copyFileSync(exampleEnvPath, envPath);
 	}
-
-	const envContent = fs.readFileSync(envPath, 'utf-8');
-	console.log('envContent', envContent);
 };
 
 const checkDatabaseConnection = async config => {
@@ -76,7 +73,7 @@ const runCommands = async () => {
 			database: process.env.DB_NAME,
 		});
 
-		console.log('Starting NestJS application...');
+		console.log('Starting Flarian application...');
 		startNestApp();
 	} catch (error) {
 		console.error('Error:', error);

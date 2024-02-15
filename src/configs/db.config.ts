@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 
-TODO: 'fix this function to return the config Promise<any>';
+// TODO: 'fix this function to return the config Promise<any>';
 
 export const getConfigDB = async (configService: ConfigService): Promise<any> => {
 	return {
