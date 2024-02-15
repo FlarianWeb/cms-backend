@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { getConfigDB } from './configs/db.config';
+import { UsersModule } from './users/users.module';
 
 @Module({
 	imports: [
@@ -13,6 +14,7 @@ import { getConfigDB } from './configs/db.config';
 			inject: [ConfigService],
 			useFactory: getConfigDB,
 		}),
+		UsersModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
