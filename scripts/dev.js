@@ -33,7 +33,7 @@ const startDatabase = async () => {
 };
 
 const startNestApp = () => {
-	const nestStart = spawn('nest', ['start']);
+	const nestStart = spawn('nest', ['start', '--watch']);
 
 	nestStart.stdout.on('data', data => {
 		process.stdout.write(data);
@@ -44,7 +44,7 @@ const startNestApp = () => {
 	});
 
 	nestStart.on('close', code => {
-		console.log(`NestJS application exited with code ${code}`);
+		console.log(`Flarian application exited with code ${code}`);
 	});
 };
 

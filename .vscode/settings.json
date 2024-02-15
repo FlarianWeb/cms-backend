@@ -97,5 +97,5 @@
 	"files.associations": {
 		"*.env*": "env"
 	},
-	"cSpell.words": ["Kamil", "Myśliwiec", "nestframework", "nestjs"]
+	"cSpell.words": ["Flarian", "Kamil", "Myśliwiec", "nestframework", "nestjs"]
 }
