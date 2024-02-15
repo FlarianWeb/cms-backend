@@ -1,7 +1,8 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConflictException, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
@@ -14,7 +15,13 @@ export class UsersService implements OnModuleInit {
 	}
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
-		const newUser = this.usersRepository.create(createUserDto);
+		const existingUser = await User.findOne({ where: { email: createUserDto.email } });
+		if (existingUser) {
+			throw new ConflictException('Email already in use');
+		}
+
+		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+		const newUser = await User.create({ ...createUserDto, passwordHash: hashedPassword });
 		return newUser;
 	}
 
