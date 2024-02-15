@@ -9,7 +9,7 @@ export const getConfigDB = async (configService: ConfigService): Promise<any> =>
 		port: configService.get('DB_PORT'),
 		username: configService.get('DB_USER'),
 		password: configService.get('DB_PASSWORD'),
-		database: configService.get('DB_DATABASE'),
+		database: configService.get('DB_NAME'),
 		synchronize: true,
 		models: [
 			// User, Category, Post, Tag, Page, PostTag, FileInfo

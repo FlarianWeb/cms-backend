@@ -3,7 +3,21 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawn = require('child_process').spawn;
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+
+const fs = require('fs');
+const path = require('path');
+
+const checkEnvFile = () => {
+	const envPath = path.resolve(process.cwd(), '.env');
+	const exampleEnvPath = path.resolve(process.cwd(), '.env.example');
+
+	if (!fs.existsSync(envPath)) {
+		fs.copyFileSync(exampleEnvPath, envPath);
+	}
+
+	const envContent = fs.readFileSync(envPath, 'utf-8');
+	console.log('envContent', envContent);
+};
 
 const checkDatabaseConnection = async config => {
 	let connection;
@@ -13,7 +27,7 @@ const checkDatabaseConnection = async config => {
 		console.log('Successfully connected to the database.');
 	} catch (error) {
 		console.log('Unable to connect to the database. Retrying in 5 seconds...');
-		new Promise(resolve => setTimeout(resolve, process.env.DB_CONNECTION_TIMEOUT || 5000)); // Wait for 5 seconds
+		await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
 		return checkDatabaseConnection(config);
 	} finally {
 		if (connection) connection.end();
@@ -49,8 +63,10 @@ const startNestApp = () => {
 };
 
 const runCommands = async () => {
+	require('dotenv').config();
 	try {
 		console.log('Starting database...');
+		console.log('Starting MySQL database...', process.env.DB_HOST);
 		await startDatabase();
 		console.log('Database started.');
 
@@ -59,7 +75,7 @@ const runCommands = async () => {
 			host: process.env.DB_HOST,
 			user: process.env.DB_USER,
 			password: process.env.DB_PASSWORD,
-			database: process.env.DB_DATABASE,
+			database: process.env.DB_NAME,
 		});
 
 		console.log('Starting NestJS application...');
@@ -69,4 +85,5 @@ const runCommands = async () => {
 	}
 };
 
+checkEnvFile();
 runCommands();
