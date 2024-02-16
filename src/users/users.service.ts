@@ -1,15 +1,22 @@
-import { ConflictException, Injectable, OnModuleInit } from '@nestjs/common';
+import { ConflictException, HttpException, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
-// TODO:General shape response
 export interface AppResponse<T> {
 	status: number;
 	data: T | null;
-	error: unknown | null;
+	error: HttpException | null;
 }
+
+const formatApiResponse = <T>(
+	data: T,
+	status: number = 1,
+	error: HttpException | null = null
+): AppResponse<T> => {
+	return { status, data, error };
+};
 @Injectable()
 export class UsersService implements OnModuleInit {
 	constructor(
@@ -25,11 +32,7 @@ export class UsersService implements OnModuleInit {
 		if (existingUser) {
 			// throw new ConflictException('Email already in use');
 
-			return {
-				status: 1,
-				data: null,
-				error: new ConflictException('Email already in use'),
-			};
+			return formatApiResponse(null, 0, new ConflictException('Email already in use'));
 		}
 
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -37,7 +40,7 @@ export class UsersService implements OnModuleInit {
 
 		const userWithoutPassword = newUser.get({ plain: true });
 		delete userWithoutPassword.passwordHash;
-		return { status: 1, data: userWithoutPassword, error: null };
+		return formatApiResponse(userWithoutPassword);
 	}
 
 	async findAll(): Promise<User[]> {
