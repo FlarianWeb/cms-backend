@@ -4,6 +4,12 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
+// TODO:General shape response
+export interface AppResponse<T> {
+	status: number;
+	data: T | null;
+	error: unknown | null;
+}
 @Injectable()
 export class UsersService implements OnModuleInit {
 	constructor(
@@ -14,15 +20,24 @@ export class UsersService implements OnModuleInit {
 		await this.usersRepository.sync();
 	}
 
-	async create(createUserDto: CreateUserDto): Promise<User> {
+	async create(createUserDto: CreateUserDto): Promise<AppResponse<Omit<User, 'passwordHash'>>> {
 		const existingUser = await User.findOne({ where: { email: createUserDto.email } });
 		if (existingUser) {
-			throw new ConflictException('Email already in use');
+			// throw new ConflictException('Email already in use');
+
+			return {
+				status: 1,
+				data: null,
+				error: new ConflictException('Email already in use'),
+			};
 		}
 
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 		const newUser = await User.create({ ...createUserDto, passwordHash: hashedPassword });
-		return newUser;
+
+		const userWithoutPassword = newUser.get({ plain: true });
+		delete userWithoutPassword.passwordHash;
+		return { status: 1, data: userWithoutPassword, error: null };
 	}
 
 	async findAll(): Promise<User[]> {
