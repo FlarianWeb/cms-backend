@@ -30,8 +30,6 @@ export class UsersService implements OnModuleInit {
 	async create(createUserDto: CreateUserDto): Promise<AppResponse<Omit<User, 'passwordHash'>>> {
 		const existingUser = await User.findOne({ where: { email: createUserDto.email } });
 		if (existingUser) {
-			// throw new ConflictException('Email already in use');
-
 			return formatApiResponse(null, 0, new ConflictException('Email already in use'));
 		}
 
