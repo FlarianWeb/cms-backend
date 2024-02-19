@@ -1,44 +1,12 @@
-import {
-	ConflictException,
-	HttpException,
-	HttpStatus,
-	Injectable,
-	OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
-export interface AppResponse<T> {
-	appStatus: number;
-	data: T | null;
-	error: HttpException | null;
-}
+import { AppResponse, formatApiResponse } from '../utils/format-api-response';
+import { CustomConflictException } from 'src/exceptions/custom-conflict.exception';
 
-const formatApiResponse = <T>(
-	data: T,
-	appStatus: number = 1,
-	error: HttpException | null = null
-): AppResponse<T> => {
-	return { appStatus, data, error };
-};
-
-export class CustomConflictException extends ConflictException {
-	constructor(message: string) {
-		super({
-			statusApp: 0,
-			data: null,
-			error: {
-				status: HttpStatus.CONFLICT,
-				error: 'Conflict',
-				message: message,
-			},
-
-			// Добавьте здесь любые дополнительные ключи и свойства, которые вы хотите включить в ответ
-		});
-	}
-}
 @Injectable()
 export class UsersService implements OnModuleInit {
 	constructor(
