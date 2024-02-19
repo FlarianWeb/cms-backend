@@ -9,10 +9,13 @@ export class CustomValidationException extends HttpException {
 			{
 				appStatus: 0,
 				data: null,
-				errors: errors.map(error => ({
-					property: error.property,
-					message: error.constraints[Object.keys(error.constraints)[0]],
-				})),
+				errors: {
+					status: HttpStatus.BAD_REQUEST,
+					message: errors.map(error => ({
+						property: error.property,
+						message: error.constraints[Object.keys(error.constraints)[0]],
+					})),
+				},
 			},
 			HttpStatus.BAD_REQUEST
 		);
