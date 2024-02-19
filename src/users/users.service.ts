@@ -1,22 +1,44 @@
-import { ConflictException, HttpException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+	ConflictException,
+	HttpException,
+	HttpStatus,
+	Injectable,
+	OnModuleInit,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 export interface AppResponse<T> {
-	status: number;
+	appStatus: number;
 	data: T | null;
 	error: HttpException | null;
 }
 
 const formatApiResponse = <T>(
 	data: T,
-	status: number = 1,
+	appStatus: number = 1,
 	error: HttpException | null = null
 ): AppResponse<T> => {
-	return { status, data, error };
+	return { appStatus, data, error };
 };
+
+export class CustomConflictException extends ConflictException {
+	constructor(message: string) {
+		super({
+			statusApp: 0,
+			data: null,
+			error: {
+				status: HttpStatus.CONFLICT,
+				error: 'Conflict',
+				message: message,
+			},
+
+			// Добавьте здесь любые дополнительные ключи и свойства, которые вы хотите включить в ответ
+		});
+	}
+}
 @Injectable()
 export class UsersService implements OnModuleInit {
 	constructor(
@@ -30,7 +52,7 @@ export class UsersService implements OnModuleInit {
 	async create(createUserDto: CreateUserDto): Promise<AppResponse<Omit<User, 'passwordHash'>>> {
 		const existingUser = await User.findOne({ where: { email: createUserDto.email } });
 		if (existingUser) {
-			return formatApiResponse(null, 0, new ConflictException('Email already in use'));
+			throw new CustomConflictException('Email already in use');
 		}
 
 		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -41,24 +63,38 @@ export class UsersService implements OnModuleInit {
 		return formatApiResponse(userWithoutPassword);
 	}
 
-	async findAll(): Promise<User[]> {
-		return this.usersRepository.findAll();
+	async findAll(): Promise<AppResponse<Omit<User, 'passwordHash'>[]>> {
+		const users = await this.usersRepository.findAll({
+			attributes: { exclude: ['passwordHash'] },
+		});
+		return formatApiResponse(users);
 	}
 
-	async findOne(id: number): Promise<User | null> {
-		return this.usersRepository.findOne({ where: { id } });
+	async findOne(id: number): Promise<AppResponse<Omit<User, 'passwordHash'> | null>> {
+		const user = await this.usersRepository.findOne({
+			where: { id },
+			attributes: { exclude: ['passwordHash'] },
+		});
+		return formatApiResponse(user);
 	}
 
-	async update(id: number, updateUserDto: CreateUserDto): Promise<User> {
+	async update(
+		id: number,
+		updateUserDto: CreateUserDto
+	): Promise<AppResponse<Omit<User, 'passwordHash'> | null>> {
 		await User.update(updateUserDto, {
 			where: { id },
 		});
 
-		const updatedUser = await User.findByPk(id);
-		return updatedUser;
+		const updatedUser = await User.findByPk(id, {
+			attributes: { exclude: ['passwordHash'] },
+		});
+		return formatApiResponse(updatedUser);
 	}
 
-	async remove(id: number): Promise<void> {
+	async remove(id: number): Promise<AppResponse<null>> {
 		await this.usersRepository.destroy({ where: { id } });
+
+		return formatApiResponse(null);
 	}
 }
