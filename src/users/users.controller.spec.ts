@@ -27,7 +27,7 @@ describe('UsersController', () => {
 		service = module.get<UsersService>(UsersService);
 	});
 
-	it('should call UsersService.create and return the result', async () => {
+	it('should call UsersService.create and return the result.', async () => {
 		expect(await controller.create({} as any)).toBe('create');
 		expect(service.create).toBeCalledTimes(1);
 	});
