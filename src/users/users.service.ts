@@ -5,7 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 
 import { AppResponse, formatApiResponse } from '../utils/format-api-response';
-import { CustomConflictException } from 'src/exceptions/custom-conflict.exception';
+import { CustomConflictException } from '../exceptions/custom-conflict.exception';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
