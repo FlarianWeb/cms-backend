@@ -17,7 +17,7 @@ export class UsersService implements OnModuleInit {
 		await this.usersRepository.sync();
 	}
 
-	private async existingUser(createUserDto: CreateUserDto): Promise<boolean> {
+	async existingUser(createUserDto: CreateUserDto): Promise<boolean> {
 		const user = await this.usersRepository.findOne({
 			where: { email: createUserDto.email },
 		});
@@ -29,11 +29,11 @@ export class UsersService implements OnModuleInit {
 		return true;
 	}
 
-	private async hashedPassword(password: string): Promise<string> {
+	async hashedPassword(password: string): Promise<string> {
 		return await bcrypt.hash(password, 10);
 	}
 
-	private async createNewUser(createUserDto: CreateUserDto) {
+	async createNewUser(createUserDto: CreateUserDto) {
 		const hashedPassword = await this.hashedPassword(createUserDto.password);
 		return await this.usersRepository.create({
 			email: createUserDto.email,

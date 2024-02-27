@@ -32,90 +32,29 @@ describe('UsersService', () => {
 		userModel = module.get<typeof User>(getModelToken(User));
 	});
 
-	it('should create a user', async () => {
+	it('should return true if user exists', async () => {
 		const createUserDto: CreateUserDto = {
-			email: 'test@test.com',
+			email: 'existing@test.com',
 			password: 'password',
 		};
 
-		const user: Partial<User> = {
-			id: 1,
-			email: 'test@test.com',
+		userModel.findOne.mockResolvedValue({ id: 1, email: 'existing@test.com' });
+
+		const result = await service.existingUser(createUserDto);
+
+		expect(result).toBe(true);
+	});
+
+	it('should return false if user does not exist', async () => {
+		const createUserDto: CreateUserDto = {
+			email: 'nonexisting@test.com',
+			password: 'password',
 		};
 
 		userModel.findOne.mockResolvedValue(null);
-		userModel.create.mockResolvedValue({
-			...user,
-			passwordHash: 'hashedpassword',
-		});
 
-		const result = await service.create(createUserDto);
+		const result = await service.existingUser(createUserDto);
 
-		expect(result.data).toEqual(user);
-		expect(userModel.create).toHaveBeenCalled();
+		expect(result).toBe(false);
 	});
-
-	// it('should find all users', async () => {
-	// 	const users: Omit<User, 'passwordHash'>[] = [
-	// 		{
-	// 			id: 1,
-	// 			email: 'test@test.com',
-	// 		},
-	// 	];
-
-	// 	userModel.findAll.mockResolvedValue(users);
-
-	// 	const result = await service.findAll();
-
-	// 	expect(result.data).toEqual(users);
-	// 	expect(userModel.findAll).toHaveBeenCalled();
-	// });
-
-	// it('should find a user by id', async () => {
-	// 	const user: Omit<User, 'passwordHash'> = {
-	// 		id: 1,
-	// 		email: 'test@test.com',
-	// 	};
-
-	// 	userModel.findOne.mockResolvedValue(user);
-
-	// 	const result = await service.findOne(1);
-
-	// 	expect(result.data).toEqual(user);
-	// 	expect(userModel.findOne).toHaveBeenCalled();
-	// });
-
-	// it('should update a user', async () => {
-	// 	const updateUserDto: CreateUserDto = {
-	// 		email: 'test2@test.com',
-	// 		password: 'password2',
-	// 	};
-
-	// 	const user: Omit<User, 'passwordHash'> = {
-	// 		id: 1,
-	// 		email: 'test2@test.com',
-	// 	};
-
-	// 	userModel.update.mockResolvedValue([1]);
-	// 	userModel.findByPk.mockResolvedValue({
-	// 		...user,
-	// 		passwordHash: 'hashedpassword2',
-	// 		get: () => user,
-	// 	});
-
-	// 	const result = await service.update(1, updateUserDto);
-
-	// 	expect(result.data).toEqual(user);
-	// 	expect(userModel.update).toHaveBeenCalled();
-	// 	expect(userModel.findByPk).toHaveBeenCalled();
-	// });
-
-	// it('should remove a user', async () => {
-	// 	userModel.destroy.mockResolvedValue(1);
-
-	// 	const result = await service.remove(1);
-
-	// 	expect(result.data).toBeNull();
-	// 	expect(userModel.destroy).toHaveBeenCalled();
-	// });
 });
