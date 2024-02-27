@@ -17,14 +17,36 @@ export class UsersService implements OnModuleInit {
 		await this.usersRepository.sync();
 	}
 
+	private async existingUser(createUserDto: CreateUserDto): Promise<boolean> {
+		const user = await this.usersRepository.findOne({
+			where: { email: createUserDto.email },
+		});
+
+		if (!user) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private async hashedPassword(password: string): Promise<string> {
+		return await bcrypt.hash(password, 10);
+	}
+
+	private async createNewUser(createUserDto: CreateUserDto) {
+		const hashedPassword = await this.hashedPassword(createUserDto.password);
+		return await this.usersRepository.create({
+			email: createUserDto.email,
+			passwordHash: hashedPassword,
+		});
+	}
+
 	async create(createUserDto: CreateUserDto): Promise<AppResponse<Omit<User, 'passwordHash'>>> {
-		const existingUser = await User.findOne({ where: { email: createUserDto.email } });
-		if (existingUser) {
+		if (await this.existingUser(createUserDto)) {
 			throw new CustomConflictException('Email already in use');
 		}
 
-		const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-		const newUser = await User.create({ ...createUserDto, passwordHash: hashedPassword });
+		const newUser = await this.createNewUser(createUserDto);
 
 		const userWithoutPassword = newUser.get({ plain: true });
 		delete userWithoutPassword.passwordHash;
@@ -50,7 +72,7 @@ export class UsersService implements OnModuleInit {
 		id: number,
 		updateUserDto: CreateUserDto
 	): Promise<AppResponse<Omit<User, 'passwordHash'> | null>> {
-		await User.update(updateUserDto, {
+		await this.usersRepository.update(updateUserDto, {
 			where: { id },
 		});
 
