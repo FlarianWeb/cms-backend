@@ -3,6 +3,11 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { getModelToken } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt', () => ({
+	hash: jest.fn(),
+}));
 
 describe('UsersService', () => {
 	let service: UsersService;
@@ -40,9 +45,7 @@ describe('UsersService', () => {
 
 		userModel.findOne.mockResolvedValue({ id: 1, email: 'existing@test.com' });
 
-		const result = await service.existingUser(createUserDto);
-
-		expect(result).toBe(true);
+		expect(await service.existingUser(createUserDto)).toBe(true);
 	});
 
 	it('should return false if user does not exist', async () => {
@@ -56,6 +59,18 @@ describe('UsersService', () => {
 		const result = await service.existingUser(createUserDto);
 
 		expect(result).toBe(false);
+	});
+
+	it('should return a hashed password', async () => {
+		const password = 'password';
+		const hashedPassword = 'hashedpassword';
+
+		(bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+		const result = await service.hashedPassword(password);
+
+		expect(result).toEqual(hashedPassword);
+		expect(bcrypt.hash).toHaveBeenCalledWith(password, 10);
 	});
 
 	it('should create a new user', async () => {

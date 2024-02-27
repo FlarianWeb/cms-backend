@@ -40,6 +40,12 @@ export class UsersService implements OnModuleInit {
 		});
 	}
 
+	async userWithoutPassword(user: User): Promise<Omit<User, 'passwordHash'>> {
+		const userWithoutPassword = user.get({ plain: true });
+		delete userWithoutPassword.passwordHash;
+		return userWithoutPassword;
+	}
+
 	async create(createUserDto: CreateUserDto): Promise<AppResponse<Omit<User, 'passwordHash'>>> {
 		if (await this.existingUser(createUserDto)) {
 			throw new CustomConflictException('Email already in use');
@@ -47,9 +53,7 @@ export class UsersService implements OnModuleInit {
 
 		const newUser = await this.createNewUser(createUserDto);
 
-		const userWithoutPassword = newUser.get({ plain: true });
-		delete userWithoutPassword.passwordHash;
-		return formatApiResponse(userWithoutPassword);
+		return formatApiResponse(await this.userWithoutPassword(newUser));
 	}
 
 	async findAll(): Promise<AppResponse<Omit<User, 'passwordHash'>[]>> {
