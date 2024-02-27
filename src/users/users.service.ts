@@ -25,7 +25,6 @@ export class UsersService implements OnModuleInit {
 		if (!user) {
 			return false;
 		}
-
 		return true;
 	}
 

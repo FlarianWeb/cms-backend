@@ -57,4 +57,25 @@ describe('UsersService', () => {
 
 		expect(result).toBe(false);
 	});
+
+	it('should create a new user', async () => {
+		const createUserDto: CreateUserDto = {
+			email: 'test@test.com',
+			password: 'password',
+		};
+
+		const hashedPassword = 'hashedpassword';
+
+		service.hashedPassword = jest.fn().mockResolvedValue(hashedPassword);
+		userModel.create.mockResolvedValue({ ...createUserDto, passwordHash: hashedPassword });
+
+		const result = await service.createNewUser(createUserDto);
+
+		expect(result).toEqual({ ...createUserDto, passwordHash: hashedPassword });
+		expect(service.hashedPassword).toHaveBeenCalledWith(createUserDto.password);
+		expect(userModel.create).toHaveBeenCalledWith({
+			email: createUserDto.email,
+			passwordHash: hashedPassword,
+		});
+	});
 });
