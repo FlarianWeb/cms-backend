@@ -6,6 +6,7 @@ import { CustomValidationException } from './exceptions/custom-validation.except
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
+	const port = process.env.APP_PORT || 3030;
 
 	app.useGlobalPipes(
 		new ValidationPipe({
@@ -17,10 +18,10 @@ async function bootstrap() {
 	);
 
 	const config = new DocumentBuilder()
-		.setTitle('Lawyer API')
-		.setDescription('The Lawyer API description')
+		.setTitle('Flarian API')
+		.setDescription('The Flarian API')
 		.setVersion('1.0')
-		// .addTag('lawyer-api')
+		.addTag('flarian-api')
 		.build();
 	const document = SwaggerModule.createDocument(app, config, {
 		ignoreGlobalPrefix: true,
@@ -30,6 +31,8 @@ async function bootstrap() {
 	app.setGlobalPrefix('api');
 	app.enableCors(); // Включение CORS
 
-	await app.listen(3030);
+	app.listen(port, () => {
+		console.log(`Server is running on port ${port}`);
+	});
 }
 bootstrap();
