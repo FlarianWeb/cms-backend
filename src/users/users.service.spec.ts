@@ -5,7 +5,8 @@ import { getModelToken } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { formatApiResponse } from '../utils/format-api-response';
-import { NotFoundException } from '@nestjs/common';
+import { CustomConflictException } from '../exceptions/custom-conflict.exception';
+import { CustomNotFoundException } from '../exceptions/custom-not-found.exception';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn(),
@@ -15,7 +16,7 @@ describe('UsersService', () => {
 	let service: UsersService;
 	let userModel: any;
 	let createUserDto: CreateUserDto;
-	let users: Partial<User>[];
+	let users;
 
 	beforeEach(async () => {
 		const UserModelMock = {
@@ -95,13 +96,11 @@ describe('UsersService', () => {
 		it('should throw an error if the user already exists', async () => {
 			service.existingUser = jest.fn().mockResolvedValue(true);
 
-			await expect(service.create(createUserDto)).rejects.toThrow(
-				'Custom Conflict Exception'
-			);
+			await expect(service.create(createUserDto)).rejects.toThrow(CustomConflictException);
 		});
 
 		it('should create a new user if the user does not exist', async () => {
-			const newUser: Partial<User> = {
+			const newUser = {
 				id: 1,
 				email: 'new@test.com',
 			};
@@ -129,7 +128,7 @@ describe('UsersService', () => {
 	describe('findOne', () => {
 		it('should return a user by id without password hash', async () => {
 			const id = 1;
-			const user: Partial<User> = {
+			const user = {
 				id: 1,
 				email: 'test@test.com',
 			};
@@ -154,7 +153,7 @@ describe('UsersService', () => {
 				password: 'updatedPassword',
 			};
 
-			const updatedUser: Partial<User> = {
+			const updatedUser = {
 				id: id,
 				email: updateUserDto.email,
 			};
@@ -186,12 +185,12 @@ describe('UsersService', () => {
 			expect(service.repository.destroy).toHaveBeenCalledWith({ where: { id } });
 		});
 
-		it('should throw NotFoundException when user not found', async () => {
+		it('should throw CustomNotFoundException when user not found', async () => {
 			const id = 1;
 
 			jest.spyOn(service.repository, 'destroy').mockResolvedValue(0);
 
-			await expect(service.remove(id)).rejects.toThrow(NotFoundException);
+			await expect(service.remove(id)).rejects.toThrow(CustomNotFoundException);
 			expect(service.repository.destroy).toHaveBeenCalledWith({ where: { id } });
 		});
 	});

@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 
 describe('UsersController', () => {
 	let controller: UsersController;
@@ -29,8 +31,22 @@ describe('UsersController', () => {
 
 	it('should call UsersService.create and return the result.', async () => {
 		expect(await controller.create({} as any)).toBe('create');
-		expect(service.create).toBeCalledTimes(1);
+		expect(service.create).toHaveBeenCalledTimes(1);
 	});
 
-	// Добавьте здесь тесты для других методов
+	it('should create a user', async () => {
+		const dto: CreateUserDto = {
+			email: 'test@test.com',
+			password: 'testPassword',
+		};
+
+		const user: Partial<User> = {
+			id: 1,
+			email: dto.email,
+		};
+
+		jest.spyOn(service, 'create').mockResolvedValue(user as any);
+
+		expect(await controller.create(dto)).toBe(user);
+	});
 });
