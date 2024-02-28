@@ -5,6 +5,7 @@ import { getModelToken } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { formatApiResponse } from '../utils/format-api-response';
+import { NotFoundException } from '@nestjs/common';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn(),
@@ -14,6 +15,7 @@ describe('UsersService', () => {
 	let service: UsersService;
 	let userModel: any;
 	let createUserDto: CreateUserDto;
+	let users: Partial<User>[];
 
 	beforeEach(async () => {
 		const UserModelMock = {
@@ -41,6 +43,10 @@ describe('UsersService', () => {
 			email: 'test@test.com',
 			password: 'password',
 		};
+		users = [
+			{ id: 1, email: 'user1@test.com' },
+			{ id: 2, email: 'user2@test.com' },
+		];
 	});
 
 	describe('create', () => {
@@ -107,6 +113,86 @@ describe('UsersService', () => {
 			const result = await service.create(createUserDto);
 
 			expect(result).toEqual(formatApiResponse(newUser));
+		});
+	});
+
+	describe('findAll', () => {
+		it('should return all users without password hashes', async () => {
+			jest.spyOn(service.repository, 'findAll').mockResolvedValue(users as User[]);
+
+			const result = await service.findAll();
+
+			expect(result).toEqual(formatApiResponse(users));
+		});
+	});
+
+	describe('findOne', () => {
+		it('should return a user by id without password hash', async () => {
+			const id = 1;
+			const user: Partial<User> = {
+				id: 1,
+				email: 'test@test.com',
+			};
+
+			jest.spyOn(service.repository, 'findOne').mockResolvedValue(user as User);
+
+			const result = await service.findOne(id);
+
+			expect(result).toEqual(formatApiResponse(user));
+			expect(service.repository.findOne).toHaveBeenCalledWith({
+				where: { id },
+				attributes: { exclude: ['passwordHash'] },
+			});
+		});
+	});
+
+	describe('update', () => {
+		it('should update a user and return the updated user without password hash', async () => {
+			const id = 1;
+			const updateUserDto: CreateUserDto = {
+				email: 'updated@test.com',
+				password: 'updatedPassword',
+			};
+
+			const updatedUser: Partial<User> = {
+				id: id,
+				email: updateUserDto.email,
+			};
+
+			jest.spyOn(service.repository, 'update').mockResolvedValue([1]);
+			jest.spyOn(service.repository, 'findByPk').mockResolvedValue(updatedUser as User);
+
+			const result = await service.update(id, updateUserDto);
+
+			expect(result).toEqual(formatApiResponse(updatedUser));
+			expect(service.repository.update).toHaveBeenCalledWith(updateUserDto, {
+				where: { id },
+			});
+			expect(service.repository.findByPk).toHaveBeenCalledWith(id, {
+				attributes: { exclude: ['passwordHash'] },
+			});
+		});
+	});
+
+	describe('remove', () => {
+		it('should remove a user by id and return the id', async () => {
+			const id = 1;
+
+			jest.spyOn(service.repository, 'destroy').mockResolvedValue(1);
+
+			const result = await service.remove(id);
+
+			expect(result).toEqual(formatApiResponse(id));
+			expect(service.repository.destroy).toHaveBeenCalledWith({ where: { id } });
+		});
+
+		it('should throw NotFoundException when user not found', async () => {
+			const id = 1;
+
+			jest.spyOn(service.repository, 'destroy').mockResolvedValue(0);
+
+			await expect(service.remove(id)).rejects.toThrow(NotFoundException);
+			expect(service.repository.destroy).toHaveBeenCalledWith({ where: { id } });
 		});
 	});
 });
