@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { User } from '../users/entities/user.entity';
 
 // TODO: 'fix this function to return the config Promise<any>';
 
@@ -11,9 +12,7 @@ export const getConfigDB = async (configService: ConfigService): Promise<any> =>
 		password: configService.get('DB_PASSWORD'),
 		database: configService.get('DB_NAME'),
 		synchronize: true,
-		models: [
-			// User, Category, Post, Tag, Page, PostTag, FileInfo
-		],
+		models: [User],
 		logging: console.log,
 	};
 };
