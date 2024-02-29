@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 
 // TODO: 'fix this function to return the config Promise<any>';
 
