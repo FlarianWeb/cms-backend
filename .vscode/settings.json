@@ -51,8 +51,8 @@
 		"**/dist": true,
 		"**/.DS_Store": true,
 		"**/*.xyz": true,
-		"**/*.tsbuildinfo": true,
-		"**/*.github": true
+		"**/*.tsbuildinfo": true
+		// "**/*.github": true
 	},
 
 	// language settings

@@ -35,7 +35,7 @@ jobs:
               run: pnpm install
 
             - name: Run tests
-              run: pnpm test > log/unit.log 2>&1
+              run: run test:e2e > log/unit.log 2>&1
 
             - name: Generate report
               if: always()
@@ -53,10 +53,53 @@ jobs:
               with:
                   name: reports
                   path: '*.txt'
+    e2e_test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Create log directory
+              if: always()
+              run: mkdir log
+
+            - name: Set up Node.js v.16.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.x
+
+            - uses: pnpm/action-setup@v3
+              name: Install pnpm
+              with:
+                  version: '8'
+                  run_install: false
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Run tests
+              run: pnpm e2e > log/e2e.log 2>&1
+
+            - name: Generate report
+              if: always()
+              run: |
+                  echo "E2E test results:" >> e2e_report.txt
+                  tail -n +7 log/e2e.log >> e2e_report.txt
+                  sed -i 's/\x1B\[[0-9;]*[JKmsu]//g' e2e_report.txt
+                  echo "" >> e2e_report.txt
+                  echo "::set-output name=report_path::e2e_report.txt"
+
+            - name: Upload report artifact
+              if: always()
+              uses: actions/upload-artifact@v2
+              with:
+                  name: reports
+                  path: '*.txt'
 
     send_telegram_notify:
-        if: always()
-        needs: unit_test
+        if: always() && github.event.pull_request.draft == false
+        needs: [unit_test, e2e_test]
         runs-on: ubuntu-latest
 
         steps:
