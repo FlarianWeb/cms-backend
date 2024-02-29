@@ -79,7 +79,7 @@ jobs:
               run: pnpm install
 
             - name: Run tests
-              run: pnpm run test:e2e > log/e2e.log 2>&1
+              run: pnpm run test:e2e
 
             - name: Generate report
               if: always()
