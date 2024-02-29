@@ -5,8 +5,7 @@ import { getModelToken } from '@nestjs/sequelize';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { formatApiResponse } from '../utils/format-api-response';
-import { CustomConflictException } from '../exceptions/custom-conflict.exception';
-import { CustomNotFoundException } from '../exceptions/custom-not-found.exception';
+import { CustomConflictException, CustomNotFoundException } from '../exceptions';
 
 jest.mock('bcrypt', () => ({
 	hash: jest.fn(),
