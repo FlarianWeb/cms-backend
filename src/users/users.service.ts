@@ -77,6 +77,19 @@ export class UsersService implements OnModuleInit {
 		return formatApiResponse(user);
 	}
 
+	//TODO: Add tests for this method
+	async findUser(email: string): Promise<AppResponse<User | null>> {
+		const user = await this.usersRepository.findOne({
+			where: { email },
+		});
+
+		if (!user) {
+			throw new CustomNotFoundException(`User with email ${email} not found`);
+		}
+
+		return formatApiResponse(user);
+	}
+
 	async update(
 		id: number,
 		updateUserDto: CreateUserDto
