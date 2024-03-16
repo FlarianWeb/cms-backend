@@ -55,6 +55,10 @@
 		"**/*.github": true
 	},
 
+	// Jest settings
+
+	"jest.runMode": "on-demand",
+
 	// language settings
 	"[env]": {
 		"editor.formatOnSave": false

@@ -7,7 +7,7 @@ export class CustomNotFoundException extends NotFoundException {
 			data: null,
 			error: {
 				status: HttpStatus.NOT_FOUND,
-				error: 'Conflict',
+				error: 'Not found',
 				message: message,
 			},
 		});
